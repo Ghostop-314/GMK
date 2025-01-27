@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when pushing to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Move HTML files to root for GitHub Pages
+      run: |
+        mv html/* .         # Move all files from the html folder to the root
+        rm -rf html         # Remove the empty html folder
+
+    - name: Fix relative paths in HTML files
+      run: |
+        find . -name "*.html" -exec sed -i 's|../css/|css/|g' {} +  # Fix CSS paths
+        find . -name "*.html" -exec sed -i 's|../images/|images/|g' {} +  # Fix image paths
+        find . -name "*.html" -exec sed -i 's|../js/|js/|g' {} +  # Fix JS paths
+
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: gh-pages
+        folder: .
+        token: ${{ secrets.GITHUB_TOKEN }}
